@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 const baseURL = import.meta.env.VITE_API_BASE_URL
 
 export default function App() {
-  const [keyword, setKeyword] = useState("");
+  const [proID, setProID] = useState("");
   const [searchWord, setSearchWord] = useState("");
   const [provinces, setProvinces] = useState([]);
   const [cities, setCities] = useState([]);
@@ -13,16 +13,22 @@ export default function App() {
   // Load drop down
   useEffect(() => {
     const loadProvinces = async () => {
-      const resp = await fetch(`${baseURL}sl-postal-codes/provinces?keyword=${keyword}`);
+      const resp = await fetch(`${baseURL}sl-postal-codes/provinces`);
       const data = await resp.json();
       setProvinces(data);
+
+      // selects central province on render
+      if (data.length > 0) {
+        setProID(data[0].id);   
+      }
+
     }
     loadProvinces();
   }, [])
 
   // Load cities on drop down click
-  const loadCities = async (provinceName) => {
-    const resp = await fetch(`${baseURL}sl-postal-codes/cities?keyword=${provinceName}`);
+  const loadCities = async (provinceId) => {
+    const resp = await fetch(`${baseURL}sl-postal-codes/cities/province/${provinceId}`);
     const data = await resp.json();
     setCities(data);
     setCityData([])
@@ -42,13 +48,13 @@ export default function App() {
       <div style={{ gap: "10px", display: "flex" }}>
 
         <select
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          value={proID}
+          onChange={(e) => setProID(e.target.value)}
         >
           {provinces.map((province, i) => (
             <option
               key={province.id}
-              value={province.name}
+              value={province.id}
             >
               {province.name}
             </option>
@@ -56,7 +62,7 @@ export default function App() {
         </select>
 
         <button
-          onClick={() => loadCities(keyword)}
+          onClick={() => loadCities(proID)}
         >
           Load Cities
         </button>
